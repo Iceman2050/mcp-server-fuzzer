@@ -1,0 +1,18 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run test suite
+        run: python -m unittest discover -s tests -v
+      - name: Fuzz the bundled dummy server end-to-end
+        run: python -m mcp_server_fuzzer --target "stdio:python3 tests/dummy_server.py" --timeout 2.0 --format json | python -c "import json,sys; d=json.load(sys.stdin); assert len(d['outcomes']) == 14, d['counts']"
